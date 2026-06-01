@@ -507,3 +507,32 @@ In short:
    [`frontend-changelog`](.github/workflows/frontend-changelog.yml) workflow.
 4. To bypass for a verified non-breaking change, add the
    `changelog-skip` label or `[changelog-skip]` token to the PR title.
+
+
+   ## Backend Development: Test/Lint/Typecheck Order
+
+### Required Order for Running Checks
+
+When developing backend features, always run these commands in this exact order:
+
+#### 1. Generate GraphQL Types (FIRST - REQUIRED)
+```bash
+npm run gql:build
+
+
+## 9. Backend Development: Test & Code Quality Workflow
+
+### 9.1 Available Commands
+
+### 9.1 Available Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm run test` | Run all tests (located in `tests/run-tests.js`) |
+| `npm run lint-staged` | Run Prettier formatter on staged files |
+| `npm run prepare` | Install git hooks (runs automatically after `npm install`) |
+| `npm run typecheck` (if available) | Run TypeScript type checking (`tsc --noEmit`) |
+
+**Note:** This project uses TypeScript (`.ts` files). If a `typecheck` script is not yet configured, run type checking manually with:
+```bash
+npx tsc --noEmit
