@@ -4,21 +4,74 @@ import dynamic from 'next/dynamic';
 // Each component is loaded lazily on demand with SSR disabled
 // where client-only APIs are used.
 
-export const DynamicModal = dynamic(() => import('../components/Modal'), {
-  ssr: false,
-});
+export const DynamicModal = dynamic(
+  () => import('../components/ui/Modal').then((mod) => mod.Modal),
+  {
+    ssr: false,
+  }
+);
 
 export const DynamicWalletConnector = dynamic(
-  () => import('../components/WalletConnector'),
+  () =>
+    import('../components/wallet/WalletConnectionModal').then(
+      (mod) => mod.WalletConnectionModal
+    ),
   { ssr: false }
 );
 
-export const DynamicChart = dynamic(() => import('../components/Chart'), {
-  ssr: false,
-  loading: () => null,
-});
-
 export const DynamicToastNotification = dynamic(
-  () => import('../components/ToastNotification'),
+  () =>
+    import('../components/notifications/Toast').then(
+      (mod) => mod.ToastProvider
+    ),
   { ssr: false, loading: () => null }
+);
+
+// Homepage below-fold section dynamic imports
+export const DynamicHowItWorks = dynamic(
+  () =>
+    import('../components/homepage/HowItWorks').then((mod) => mod.HowItWorks),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[400px] w-full animate-pulse rounded-lg bg-slate-800/50" />
+    ),
+  }
+);
+
+export const DynamicFeaturedQuests = dynamic(
+  () =>
+    import('../components/homepage/FeaturedQuests').then(
+      (mod) => mod.default
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[500px] w-full animate-pulse rounded-lg bg-slate-800/50" />
+    ),
+  }
+);
+
+export const DynamicFAQAccordion = dynamic(
+  () =>
+    import('../components/homepage/FAQAccordion').then(
+      (mod) => mod.FAQAccordion
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[400px] w-full animate-pulse rounded-lg bg-slate-800/50" />
+    ),
+  }
+);
+
+export const DynamicCTASection = dynamic(
+  () =>
+    import('../components/homepage/CTASection').then((mod) => mod.CTASection),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="min-h-[300px] w-full animate-pulse rounded-lg bg-slate-800/50" />
+    ),
+  }
 );

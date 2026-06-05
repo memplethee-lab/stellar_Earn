@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { StatusBadge } from './StatusBadge';
 import type { Submission } from '@/lib/types/submission';
 import { formatRelativeDate } from '@/lib/utils/date';
@@ -9,7 +10,10 @@ interface SubmissionCardProps {
   onClick?: (submission: Submission) => void;
 }
 
-export function SubmissionCard({ submission, onClick }: SubmissionCardProps) {
+export const SubmissionCard = memo(function SubmissionCard({
+  submission,
+  onClick,
+}: SubmissionCardProps) {
   const handleClick = () => {
     onClick?.(submission);
   };
@@ -17,18 +21,11 @@ export function SubmissionCard({ submission, onClick }: SubmissionCardProps) {
   const formattedDate = formatRelativeDate(submission.createdAt);
 
   return (
-    <div
+    <button
       onClick={handleClick}
-      className="group cursor-pointer rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700"
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick();
-        }
-      }}
+      className="group cursor-pointer rounded-lg border border-zinc-200 bg-white p-6 shadow-sm transition-all hover:border-zinc-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 text-left"
       aria-label={`View submission for ${submission.quest.title}`}
+      type="button"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
@@ -50,6 +47,8 @@ export function SubmissionCard({ submission, onClick }: SubmissionCardProps) {
           <StatusBadge status={submission.status} />
         </div>
       </div>
-    </div>
+    </button>
   );
-}
+});
+
+SubmissionCard.displayName = 'SubmissionCard';

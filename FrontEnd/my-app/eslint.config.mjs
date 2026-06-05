@@ -57,6 +57,34 @@ const eslintConfig = [
 
   // Override default ignores of eslint-config-next.
   globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+
+  // ── Dead code & unreachable branch detection ──────────────────────────────
+  {
+    rules: {
+      'no-unreachable': 'error',
+      'no-unreachable-loop': 'error',
+      'no-constant-condition': 'error',
+      'no-constant-binary-expression': 'error',
+      'no-self-compare': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          vars: 'all',
+          args: 'after-used',
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+          caughtErrors: 'all',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-require-imports': 'warn',
+      'react-hooks/rules-of-hooks': 'warn',
+      'react-hooks/exhaustive-deps': 'warn',
+      '@next/next/no-sync-scripts': 'warn',
+      '@next/next/no-html-link-for-pages': 'warn',
+    },
+  },
 ];
 
 export default eslintConfig;

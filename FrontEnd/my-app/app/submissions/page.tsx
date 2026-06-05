@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense, useMemo } from 'react';
+import { useState, Suspense, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { StatusFilter } from '@/components/submission/StatusFilter';
@@ -14,6 +14,7 @@ import { SubmissionForm } from '@/components/quest/SubmissionForm';
 import { mockSubmissions } from '@/lib/mock/submissions';
 import { SubmissionStatus } from '@/lib/types/submission';
 import type { Submission } from '@/lib/types/submission';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 function SubmissionsContent() {
   const searchParams = useSearchParams();
@@ -70,42 +71,51 @@ function SubmissionsContent() {
   const hasMore = currentPage < totalPages;
 
   // Update URL when filter changes
-  const handleStatusChange = (status: SubmissionStatus | undefined) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (status) {
-      params.set('status', status);
-    } else {
-      params.delete('status');
-    }
-    params.set('page', '1'); // Reset to first page when filter changes
-    router.push(`/submissions?${params.toString()}`);
-  };
+  const handleStatusChange = useCallback(
+    (status: SubmissionStatus | undefined) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (status) {
+        params.set('status', status);
+      } else {
+        params.delete('status');
+      }
+      params.set('page', '1'); // Reset to first page when filter changes
+      router.push(`/submissions?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
 
   // Update URL when page changes
-  const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', page.toString());
-    router.push(`/submissions?${params.toString()}`);
-  };
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('page', page.toString());
+      router.push(`/submissions?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    // Reset to first page on search
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', '1');
-    router.push(`/submissions?${params.toString()}`);
-  };
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      // Reset to first page on search
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('page', '1');
+      router.push(`/submissions?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
 
-  const handleSubmissionClick = (submission: Submission) => {
+  const handleSubmissionClick = useCallback((submission: Submission) => {
     setSelectedSubmission(submission);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     // Clear selected submission after animation
     setTimeout(() => setSelectedSubmission(null), 300);
-  };
+  }, []);
 
   return (
     <AppLayout>
@@ -245,20 +255,16 @@ export default function SubmissionsPage() {
     <Suspense
       fallback={
         <AppLayout>
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
-                Submissions
-              </h1>
+          <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div className="mb-6 lg:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-50">
+                  Submissions
+                </h1>
+                <Skeleton.Text className="mt-2 h-4 w-64" />
+              </div>
             </div>
-            <div className="animate-pulse space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="h-32 rounded-lg bg-zinc-200 dark:bg-zinc-800"
-                />
-              ))}
-            </div>
+            <Skeleton.List items={3} />
           </div>
         </AppLayout>
       }

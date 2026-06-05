@@ -20,11 +20,13 @@ import {
   PayoutResponseDto,
   PayoutStatsDto,
 } from './dto/payout-query.dto';
+import { FraudRiskRulesService } from './services/fraud-risk-rules.service';
 import {
   encodeCursor,
   decodeCursor,
   PaginatedResponseDto,
 } from '../../common/dto/pagination.dto';
+import { QuotaService } from '../quota/quota.service';
 
 @Injectable()
 export class PayoutsService {
@@ -36,11 +38,18 @@ export class PayoutsService {
     private readonly payoutRepository: Repository<Payout>,
     private readonly configService: ConfigService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly fraudRiskRulesService: FraudRiskRulesService,
+    private readonly quotaService: QuotaService,
   ) {}
 
   // ─── Create ────────────────────────────────────────────────────────────────
 
   async createPayout(createPayoutDto: CreatePayoutDto): Promise<Payout> {
+    await this.quotaService.enforcePayoutQuota(
+      createPayoutDto.stellarAddress,
+      createPayoutDto.amount,
+    );
+
     const payout = this.payoutRepository.create({
       stellarAddress: createPayoutDto.stellarAddress,
       amount: createPayoutDto.amount,

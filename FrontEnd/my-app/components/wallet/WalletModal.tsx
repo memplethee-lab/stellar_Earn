@@ -37,12 +37,12 @@ export function WalletModal() {
   return (
     <AnimatePresence>
       {isModalOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm border-none p-0"
           onClick={closeModal}
-          role="button"
-          tabIndex={-1}
           aria-label="Close wallet modal"
+          tabIndex={-1}
         >
           <FocusTrap active={isModalOpen}>
             <motion.div
@@ -121,12 +121,14 @@ export function WalletModal() {
                   }`}
                 >
                   <UserIcon />
-                  <span>{isConnecting ? 'Connecting...' : 'Connect Wallet'}</span>
+                  <span>
+                    {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                  </span>
                 </button>
               </div>
             </motion.div>
           </FocusTrap>
-        </div>
+        </button>
       )}
     </AnimatePresence>
   );

@@ -15,6 +15,10 @@ import { Payout } from '../modules/payouts/entities/payout.entity';
 import { ModerationItem } from '../modules/moderation/entities/moderation-item.entity';
 import { ModerationAppeal } from '../modules/moderation/entities/moderation-appeal.entity';
 import { DataExport } from '../modules/users/entities/data-export.entity';
+import { FeatureFlag } from '../modules/feature-flags/entities/feature-flag.entity';
+import { FeatureFlagAuditLog } from '../modules/feature-flags/entities/feature-flag-audit.entity';
+import { QuotaConfig } from '../modules/quota/entities/quota-config.entity';
+import { QuotaUsage } from '../modules/quota/entities/quota-usage.entity';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
@@ -97,6 +101,10 @@ export const dataSourceOptions: DataSourceOptions = {
     Submission,
     Notification,
     Payout,
+    FeatureFlag,
+    FeatureFlagAuditLog,
+    QuotaConfig,
+    QuotaUsage,
   ],
 
   migrations: [

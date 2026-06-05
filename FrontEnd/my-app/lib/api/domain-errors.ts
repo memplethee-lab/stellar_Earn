@@ -57,6 +57,15 @@ export const PAYOUTS_ERRORS: DomainErrorMap = {
   default: 'Payout failed. Please try again.',
 };
 
+export class NetworkUnreachableError extends Error {
+  constructor(
+    message: string = 'Unable to connect to the server. Please check your internet connection.'
+  ) {
+    super(message);
+    this.name = 'NetworkUnreachableError';
+  }
+}
+
 export const USERS_ERRORS: DomainErrorMap = {
   400: 'Invalid profile data. Please check your input.',
   401: 'You must be signed in to update your profile.',
@@ -70,12 +79,7 @@ export const USERS_ERRORS: DomainErrorMap = {
 };
 
 /** All supported API domains. */
-export type ApiDomain =
-  | 'auth'
-  | 'quests'
-  | 'submissions'
-  | 'payouts'
-  | 'users';
+export type ApiDomain = 'auth' | 'quests' | 'submissions' | 'payouts' | 'users';
 
 /** Registry mapping domain names to their error maps. */
 export const DOMAIN_ERROR_MAPS: Record<ApiDomain, DomainErrorMap> = {

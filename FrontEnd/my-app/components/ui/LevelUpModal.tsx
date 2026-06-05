@@ -102,10 +102,8 @@ export function LevelUpModal({ isOpen, newLevel, onClose }: LevelUpModalProps) {
 
   if (!isOpen) return null;
 
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
+  const handleBackdropClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onClose();
   };
 
   return (
@@ -123,16 +121,20 @@ export function LevelUpModal({ isOpen, newLevel, onClose }: LevelUpModalProps) {
       </div>
 
       {/* Modal Overlay */}
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-        onClick={handleBackdropClick}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="level-up-title"
-      >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <button
+          type="button"
+          className="absolute inset-0 bg-black/50 border-none p-0"
+          onClick={handleBackdropClick}
+          aria-label="Close level up modal"
+          tabIndex={-1}
+        />
         <FocusTrap active={isOpen}>
           <div
             ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="level-up-title"
             className="relative w-full max-w-md rounded-lg bg-white shadow-xl dark:bg-zinc-900 animate-modal-entrance"
             tabIndex={-1}
           >
@@ -177,13 +179,14 @@ export function LevelUpModal({ isOpen, newLevel, onClose }: LevelUpModalProps) {
 
               {/* Level Number */}
               <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-50 mb-2">
-                You've reached Level {newLevel}!
+                You&apos;ve reached Level {newLevel}!
               </p>
 
               {/* Benefits */}
               <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Keep completing quests to unlock more rewards and achievements.
+                  Keep completing quests to unlock more rewards and
+                  achievements.
                 </p>
               </div>
             </div>

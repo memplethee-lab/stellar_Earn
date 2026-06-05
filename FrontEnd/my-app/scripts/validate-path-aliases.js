@@ -1,30 +1,16 @@
-const fs = require('fs');
-const path = require('path');
+#!/usr/bin/env node
+const fs = require('node:fs');
+const path = require('node:path');
 
 const TS_EXTENSIONS = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.json', '.d.ts'];
 
-function loadTsConfigPaths(tsconfigPath) {
-  const resolvedConfigPath = path.resolve(tsconfigPath);
+function loadTsconfig(tsconfigPath) {
+  const fileContents = fs.readFileSync(tsconfigPath, 'utf8');
+  return JSON.parse(fileContents);
+}
 
-  if (!fs.existsSync(resolvedConfigPath)) {
-    throw new Error(`tsconfig file not found at ${resolvedConfigPath}`);
-  }
-
-  const rawContent = fs.readFileSync(resolvedConfigPath, 'utf8');
-  let tsconfig;
-
-  try {
-    tsconfig = JSON.parse(rawContent);
-  } catch (error) {
-    throw new Error(`Unable to parse ${resolvedConfigPath}: ${error.message}`);
-  }
-
-  const paths = tsconfig?.compilerOptions?.paths;
-  if (!paths || typeof paths !== 'object') {
-    throw new Error(`No "compilerOptions.paths" section found in ${resolvedConfigPath}`);
-  }
-
-  return { paths, tsconfigDir: path.dirname(resolvedConfigPath) };
+function normalizeWildcardCount(value) {
+  return (value.match(/\*/g) || []).length;
 }
 
 function existsPathCandidate(candidate) {
@@ -32,8 +18,8 @@ function existsPathCandidate(candidate) {
     return true;
   }
 
-  for (const extension of TS_EXTENSIONS) {
-    if (fs.existsSync(`${candidate}${extension}`)) {
+  for (const ext of TS_EXTENSIONS) {
+    if (fs.existsSync(`${candidate}${ext}`)) {
       return true;
     }
   }
@@ -41,73 +27,94 @@ function existsPathCandidate(candidate) {
   return false;
 }
 
-function validatePathAliases(tsconfigPath) {
-  const { paths, tsconfigDir } = loadTsConfigPaths(tsconfigPath);
+function validateTsconfigPaths(tsconfigPath) {
   const errors = [];
+  const tsconfig = loadTsconfig(tsconfigPath);
+  const compilerOptions = tsconfig.compilerOptions;
 
-  for (const [alias, targets] of Object.entries(paths)) {
-    if (!Array.isArray(targets) || targets.length === 0) {
-      errors.push(`Alias "${alias}" must map to a non-empty array of path targets.`);
-      continue;
-    }
-
-    const aliasHasWildcard = alias.endsWith('/*');
-    if (!aliasHasWildcard && alias.includes('*')) {
-      errors.push(`Alias "${alias}" contains wildcard characters but is missing a trailing "/*" suffix.`);
-    }
-
-    for (const target of targets) {
-      if (typeof target !== 'string' || target.trim() === '') {
-        errors.push(`Alias target for "${alias}" must be a non-empty string.`);
-        continue;
-      }
-
-      const targetHasWildcard = target.endsWith('/*');
-      if (aliasHasWildcard !== targetHasWildcard) {
-        errors.push(
-          `Alias pattern mismatch for "${alias}" -> "${target}". ` +
-            'Both alias and target should either include a wildcard suffix "/*" or omit it together.'
-        );
-      }
-
-      if (!target.startsWith('./') && !target.startsWith('../')) {
-        errors.push(`Alias target "${target}" for "${alias}" must be relative to the tsconfig file, starting with ./ or ../.`);
-      }
-
-      const pathBase = targetHasWildcard ? target.slice(0, -2) : target;
-      const absoluteBase = path.resolve(tsconfigDir, pathBase);
-
-      if (!existsPathCandidate(absoluteBase)) {
-        errors.push(
-          `Alias target path for "${alias}" does not resolve to an existing file or directory: ${absoluteBase}`
-        );
-      }
-    }
+  if (!compilerOptions || typeof compilerOptions !== 'object') {
+    errors.push('Missing or invalid compilerOptions in tsconfig.');
+    return { errors };
   }
 
-  return errors;
-}
+  const paths = compilerOptions.paths;
+  if (!paths || typeof paths !== 'object') {
+    return { errors };
+  }
 
-function formatErrors(errors) {
-  return errors.map((message, index) => `${index + 1}. ${message}`).join('\n');
+  const tsconfigDir = path.dirname(tsconfigPath);
+  const baseUrl = compilerOptions.baseUrl;
+
+  if (!baseUrl || typeof baseUrl !== 'string') {
+    errors.push('compilerOptions.baseUrl is required when using path aliases.');
+    return { errors };
+  }
+
+  const resolvedBaseUrl = path.resolve(tsconfigDir, baseUrl);
+  if (!fs.existsSync(resolvedBaseUrl)) {
+    errors.push(`compilerOptions.baseUrl does not exist at ${resolvedBaseUrl}.`);
+    return { errors };
+  }
+
+  Object.entries(paths).forEach(([aliasKey, aliasValue]) => {
+    if (!Array.isArray(aliasValue) || aliasValue.length === 0) {
+      errors.push(`Path alias '${aliasKey}' must map to a non-empty array of paths.`);
+      return;
+    }
+
+    const aliasWildcardCount = normalizeWildcardCount(aliasKey);
+
+    if (aliasWildcardCount > 1) {
+      errors.push(`Path alias '${aliasKey}' may contain at most one wildcard ('*').`);
+      return;
+    }
+
+    aliasValue.forEach((targetPath) => {
+      if (typeof targetPath !== 'string' || targetPath.trim().length === 0) {
+        errors.push(`Path alias '${aliasKey}' contains an invalid target path.`);
+        return;
+      }
+
+      const targetWildcardCount = normalizeWildcardCount(targetPath);
+
+      if (aliasWildcardCount !== targetWildcardCount) {
+        errors.push(
+          `Wildcard mismatch: '${aliasKey}' -> '${targetPath}'. Both must have the same number of '*'`
+        );
+        return;
+      }
+
+      const candidate = targetPath.replace('*', '');
+      const resolvedTarget = path.resolve(resolvedBaseUrl, candidate);
+
+      if (!existsPathCandidate(resolvedTarget)) {
+        errors.push(
+          `Path alias '${aliasKey}' maps to a missing path: ${resolvedTarget}`
+        );
+      }
+    });
+  });
+
+  return { errors };
 }
 
 function run() {
-  try {
-    const errors = validatePathAliases(path.resolve(__dirname, '../tsconfig.json'));
-    if (errors.length > 0) {
-      console.error('Path alias validation failed:');
-      console.error(formatErrors(errors));
-      process.exit(1);
-    }
+  const tsconfigPath = path.resolve(process.cwd(), 'tsconfig.json');
 
-    console.log('Path alias validation passed. All alias targets resolve successfully.');
-    process.exit(0);
-  } catch (error) {
-    console.error('Path alias validation could not complete:');
-    console.error(error.message || error);
+  if (!fs.existsSync(tsconfigPath)) {
+    console.error(`Could not locate tsconfig.json at ${tsconfigPath}`);
     process.exit(1);
   }
+
+  const { errors } = validateTsconfigPaths(tsconfigPath);
+
+  if (errors.length > 0) {
+    console.error('Path alias validation failed:');
+    errors.forEach((error, i) => console.error(`${i + 1}. ${error}`));
+    process.exit(1);
+  }
+
+  console.log('Path alias validation succeeded.');
 }
 
 if (require.main === module) {
@@ -115,7 +122,6 @@ if (require.main === module) {
 }
 
 module.exports = {
-  loadTsConfigPaths,
-  validatePathAliases,
-  formatErrors,
+  validateTsconfigPaths,
+  loadTsconfig,
 };

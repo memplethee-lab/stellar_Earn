@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { StatusBadge } from './StatusBadge';
 import type { Submission } from '@/lib/types/submission';
 import { formatShortDate } from '@/lib/utils/date';
@@ -22,7 +23,7 @@ function getProofDisplay(proof: Record<string, unknown>): string {
   return 'View';
 }
 
-export function SubmissionsTable({
+export const SubmissionsTable = memo(function SubmissionsTable({
   submissions,
   onSubmissionClick,
 }: SubmissionsTableProps) {
@@ -77,33 +78,73 @@ export function SubmissionsTable({
             return (
               <tr
                 key={submission.id}
-                onClick={() => onSubmissionClick?.(submission)}
-                className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                className="transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
               >
                 <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-zinc-900 dark:text-zinc-50">
-                  {submission.id}
+                  <button
+                    type="button"
+                    onClick={() => onSubmissionClick?.(submission)}
+                    className="w-full text-left"
+                    aria-label={`View submission ${submission.id}`}
+                  >
+                    {submission.id}
+                  </button>
                 </td>
                 <td className="px-6 py-4 text-sm text-zinc-900 dark:text-zinc-50">
-                  {submission.quest.title}
+                  <button
+                    type="button"
+                    onClick={() => onSubmissionClick?.(submission)}
+                    className="w-full text-left"
+                    aria-label={`View submission for ${submission.quest.title}`}
+                  >
+                    {submission.quest.title}
+                  </button>
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
-                  {formatShortDate(submission.createdAt)}
+                  <button
+                    type="button"
+                    onClick={() => onSubmissionClick?.(submission)}
+                    className="w-full text-left"
+                    aria-label={`View submission date ${submission.id}`}
+                  >
+                    {formatShortDate(submission.createdAt)}
+                  </button>
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm">
-                  <StatusBadge status={submission.status} />
+                  <button
+                    type="button"
+                    onClick={() => onSubmissionClick?.(submission)}
+                    className="w-full text-left"
+                    aria-label={`View submission status ${submission.id}`}
+                  >
+                    <StatusBadge status={submission.status} />
+                  </button>
                 </td>
                 <td
                   className={`whitespace-nowrap px-6 py-4 text-sm font-medium ${
-                    submission.quest.rewardAmount > 0
+                    Number(submission.quest.rewardAmount) > 0
                       ? 'text-orange-600 dark:text-orange-400'
                       : 'text-zinc-500 dark:text-zinc-400'
                   }`}
                 >
-                  {submission.quest.rewardAmount} {submission.quest.rewardAsset}
+                  <button
+                    type="button"
+                    onClick={() => onSubmissionClick?.(submission)}
+                    className="w-full text-left"
+                    aria-label={`View reward for submission ${submission.id}`}
+                  >
+                    {submission.quest.rewardAmount}{' '}
+                    {submission.quest.rewardAsset}
+                  </button>
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-zinc-500 dark:text-zinc-400">
                   {hasProof ? (
-                    <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onSubmissionClick?.(submission)}
+                      className="flex w-full items-center gap-2 text-left"
+                      aria-label={`View proof for submission ${submission.id}`}
+                    >
                       <span>{proofDisplay}</span>
                       <svg
                         className="h-4 w-4"
@@ -118,7 +159,7 @@ export function SubmissionsTable({
                           d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                         />
                       </svg>
-                    </div>
+                    </button>
                   ) : (
                     '-'
                   )}
@@ -130,4 +171,6 @@ export function SubmissionsTable({
       </table>
     </div>
   );
-}
+});
+
+SubmissionsTable.displayName = 'SubmissionsTable';
