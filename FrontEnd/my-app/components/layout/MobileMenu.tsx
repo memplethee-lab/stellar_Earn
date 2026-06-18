@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
-import { isActiveRoute, navigationItems } from '@/lib/config/navigation';
+import { isActiveRoute, useTranslatedNavigation } from '@/lib/config/navigation';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -11,6 +11,8 @@ interface MobileMenuProps {
 }
 
 export function MobileMenu({ isOpen, onClose, pathname }: MobileMenuProps) {
+  const { navigationItems } = useTranslatedNavigation();
+  
   useEffect(() => {
     if (!isOpen) return;
 

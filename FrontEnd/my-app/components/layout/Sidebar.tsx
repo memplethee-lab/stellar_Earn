@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { isActiveRoute, navigationItems } from '@/lib/config/navigation';
+import { isActiveRoute, useTranslatedNavigation } from '@/lib/config/navigation';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -19,6 +19,7 @@ function NavDot({ active }: { active: boolean }) {
 
 export function Sidebar({ collapsed = false }: SidebarProps) {
   const pathname = usePathname();
+  const { navigationItems } = useTranslatedNavigation();
 
   return (
     <aside

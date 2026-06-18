@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { userMenuItems } from '@/lib/config/navigation';
+import { useTranslatedNavigation } from '@/lib/config/navigation';
 
 interface UserMenuProps {
   username?: string;
@@ -13,6 +13,7 @@ export function UserMenu({ username = 'john.doe' }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+  const { userMenuItems } = useTranslatedNavigation();
   const initials = useMemo(
     () =>
       username

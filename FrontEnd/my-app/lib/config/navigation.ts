@@ -1,41 +1,68 @@
+import { useTranslations } from 'next-intl';
+
 export interface NavigationItem {
   href: string;
-  label: string;
+  labelKey: string;
   exact?: boolean;
 }
 
 export interface UserMenuItem {
   href: string;
-  label: string;
+  labelKey: string;
 }
 
 export const navigationItems: NavigationItem[] = [
-  { href: '/dashboard', label: 'Dashboard', exact: true },
-  { href: '/quests', label: 'Quests' },
-  { href: '/submissions', label: 'Submissions' },
-  { href: '/rewards', label: 'Rewards' },
-  { href: '/settings/notifications', label: 'Settings' },
-  { href: '/admin', label: 'Admin' },
+  { href: '/dashboard', labelKey: 'nav.dashboard', exact: true },
+  { href: '/quests', labelKey: 'nav.quests' },
+  { href: '/submissions', labelKey: 'nav.submissions' },
+  { href: '/rewards', labelKey: 'nav.rewards' },
+  { href: '/settings/notifications', labelKey: 'nav.settings' },
+  { href: '/admin', labelKey: 'nav.admin' },
 ];
 
 export const userMenuItems: UserMenuItem[] = [
-  { href: '/profile/john.doe', label: 'Profile' },
-  { href: '/settings/notifications', label: 'Settings' },
-  { href: '/rewards', label: 'Rewards' },
+  { href: '/profile/john.doe', labelKey: 'nav.profile' },
+  { href: '/settings/notifications', labelKey: 'nav.settings' },
+  { href: '/rewards', labelKey: 'nav.rewards' },
 ];
 
 export const routeLabelMap: Record<string, string> = {
-  dashboard: 'Dashboard',
-  quests: 'Quests',
-  submissions: 'Submissions',
-  rewards: 'Rewards',
-  settings: 'Settings',
-  notifications: 'Notifications',
-  admin: 'Admin',
-  profile: 'Profile',
+  dashboard: 'nav.dashboard',
+  quests: 'nav.quests',
+  submissions: 'nav.submissions',
+  rewards: 'nav.rewards',
+  settings: 'nav.settings',
+  notifications: 'nav.notifications',
+  admin: 'nav.admin',
+  profile: 'nav.profile',
 };
 
-export function isActiveRoute(pathname: string, item: NavigationItem): boolean {
+// Hook to get translated navigation items
+export function useTranslatedNavigation() {
+  const t = useTranslations();
+  
+  return {
+    navigationItems: navigationItems.map(item => ({
+      ...item,
+      label: t(item.labelKey)
+    })) as TranslatedNavigationItem[],
+    userMenuItems: userMenuItems.map(item => ({
+      ...item,
+      label: t(item.labelKey)
+    })) as TranslatedUserMenuItem[]
+  };
+}
+
+// TranslatedNavigationItem is the type after useTranslatedNavigation adds the label
+export interface TranslatedNavigationItem extends NavigationItem {
+  label: string;
+}
+
+export interface TranslatedUserMenuItem extends UserMenuItem {
+  label: string;
+}
+
+export function isActiveRoute(pathname: string, item: { href: string; exact?: boolean }): boolean {
   if (item.exact) {
     return pathname === item.href;
   }
@@ -43,12 +70,17 @@ export function isActiveRoute(pathname: string, item: NavigationItem): boolean {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-export function getRouteLabel(segment: string): string {
-  const cleanedSegment = decodeURIComponent(segment).toLowerCase();
-  return (
-    routeLabelMap[cleanedSegment] ??
-    cleanedSegment
+export function useTranslatedRouteLabel() {
+  const t = useTranslations();
+  
+  return (segment: string): string => {
+    const cleanedSegment = decodeURIComponent(segment).toLowerCase();
+    const labelKey = routeLabelMap[cleanedSegment];
+    if (labelKey) {
+      return t(labelKey);
+    }
+    return cleanedSegment
       .replace(/-/g, ' ')
-      .replace(/\b\w/g, (char) => char.toUpperCase())
-  );
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 }

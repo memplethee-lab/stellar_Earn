@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getRouteLabel } from '@/lib/config/navigation';
+import { useTranslatedRouteLabel } from '@/lib/config/navigation';
 
 interface Crumb {
   href: string;
@@ -11,7 +11,8 @@ interface Crumb {
 
 export function Breadcrumbs() {
   const pathname = usePathname();
-  const segments = pathname.split('/').filter(Boolean);
+  const getRouteLabel = useTranslatedRouteLabel();
+  const segments = pathname.split('/').filter(Boolean).filter(segment => segment !== 'en' && segment !== 'es'); // Remove locale from segments
 
   const crumbs: Crumb[] = segments.map((segment, index) => ({
     href: `/${segments.slice(0, index + 1).join('/')}`,
