@@ -4,7 +4,6 @@ import { ConflictException } from '@nestjs/common';
 import { of, throwError } from 'rxjs';
 import { IdempotencyInterceptor } from './idempotency.interceptor';
 import { IdempotencyService } from '../services/idempotency.service';
-import { IDEMPOTENT_KEY } from '../decorators/idempotent.decorator';
 
 describe('IdempotencyInterceptor', () => {
   let interceptor: IdempotencyInterceptor;
